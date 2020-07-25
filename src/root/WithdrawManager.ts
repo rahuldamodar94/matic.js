@@ -77,7 +77,7 @@ export default class WithdrawManager extends ContractsBase {
       txObject = this.getChildMaticContract().methods.burn(this.encode(amount), '0x')
       options.value = this.encode(amount)
     } else {
-      txObject = this.getERC20TokenContract(token).methods.burn(this.encode(amount), '0x')
+      txObject = this.getRedditTokenContract(token).methods.burn(this.encode(amount), '0x')
     }
     const _options = await this.web3Client.fillOptions(txObject, false /* onRootChain */, options)
     if (_options.encodeAbi) {
