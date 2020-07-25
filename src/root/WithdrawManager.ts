@@ -136,6 +136,214 @@ export default class WithdrawManager extends ContractsBase {
     return this.web3Client.send(txObject, _options)
   }
 
+  async startExitForRedditBurntToken(burnTxHash, predicate: address, options?) {
+    const payload = await this.exitManager.buildPayloadForExit(burnTxHash, WithdrawManager.ERC20_WITHDRAW_EVENT_SIG)
+    const _predicate = new this.web3Client.parentWeb3.eth.Contract(
+      [
+        {
+          inputs: [
+            {
+              internalType: 'address',
+              name: '_withdrawManager',
+              type: 'address',
+            },
+            {
+              internalType: 'address',
+              name: '_depositManager',
+              type: 'address',
+            },
+            {
+              internalType: 'address',
+              name: '_registry',
+              type: 'address',
+            },
+          ],
+          payable: false,
+          stateMutability: 'nonpayable',
+          type: 'constructor',
+        },
+        {
+          constant: true,
+          inputs: [],
+          name: 'CHAINID',
+          outputs: [
+            {
+              internalType: 'uint256',
+              name: '',
+              type: 'uint256',
+            },
+          ],
+          payable: false,
+          stateMutability: 'view',
+          type: 'function',
+        },
+        {
+          constant: true,
+          inputs: [
+            {
+              internalType: 'bytes',
+              name: 'state',
+              type: 'bytes',
+            },
+          ],
+          name: 'interpretStateUpdate',
+          outputs: [
+            {
+              internalType: 'bytes',
+              name: '',
+              type: 'bytes',
+            },
+          ],
+          payable: false,
+          stateMutability: 'view',
+          type: 'function',
+        },
+        {
+          constant: true,
+          inputs: [],
+          name: 'networkId',
+          outputs: [
+            {
+              internalType: 'bytes',
+              name: '',
+              type: 'bytes',
+            },
+          ],
+          payable: false,
+          stateMutability: 'view',
+          type: 'function',
+        },
+        {
+          constant: false,
+          inputs: [
+            {
+              internalType: 'bytes',
+              name: 'data',
+              type: 'bytes',
+            },
+          ],
+          name: 'onFinalizeExit',
+          outputs: [],
+          payable: false,
+          stateMutability: 'nonpayable',
+          type: 'function',
+        },
+        {
+          constant: false,
+          inputs: [
+            {
+              internalType: 'bytes',
+              name: 'data',
+              type: 'bytes',
+            },
+            {
+              internalType: 'bytes',
+              name: 'exitTx',
+              type: 'bytes',
+            },
+          ],
+          name: 'startExitForIncomingErc20Transfer',
+          outputs: [
+            {
+              internalType: 'address',
+              name: '',
+              type: 'address',
+            },
+            {
+              internalType: 'uint256',
+              name: '',
+              type: 'uint256',
+            },
+          ],
+          payable: true,
+          stateMutability: 'payable',
+          type: 'function',
+        },
+        {
+          constant: false,
+          inputs: [
+            {
+              internalType: 'bytes',
+              name: 'data',
+              type: 'bytes',
+            },
+            {
+              internalType: 'bytes',
+              name: 'exitTx',
+              type: 'bytes',
+            },
+          ],
+          name: 'startExitForOutgoingErc20Transfer',
+          outputs: [
+            {
+              internalType: 'address',
+              name: '',
+              type: 'address',
+            },
+            {
+              internalType: 'uint256',
+              name: '',
+              type: 'uint256',
+            },
+          ],
+          payable: true,
+          stateMutability: 'payable',
+          type: 'function',
+        },
+        {
+          constant: false,
+          inputs: [
+            {
+              internalType: 'bytes',
+              name: 'data',
+              type: 'bytes',
+            },
+          ],
+          name: 'startExitWithBurntTokens',
+          outputs: [],
+          payable: false,
+          stateMutability: 'nonpayable',
+          type: 'function',
+        },
+        {
+          constant: false,
+          inputs: [
+            {
+              internalType: 'bytes',
+              name: 'exit',
+              type: 'bytes',
+            },
+            {
+              internalType: 'bytes',
+              name: 'inputUtxo',
+              type: 'bytes',
+            },
+            {
+              internalType: 'bytes',
+              name: 'challengeData',
+              type: 'bytes',
+            },
+          ],
+          name: 'verifyDeprecation',
+          outputs: [
+            {
+              internalType: 'bool',
+              name: '',
+              type: 'bool',
+            },
+          ],
+          payable: false,
+          stateMutability: 'nonpayable',
+          type: 'function',
+        },
+      ],
+      predicate
+    )
+    const txObject = _predicate.methods.startExitWithBurntTokens(payload)
+    const _options = await this.web3Client.fillOptions(txObject, true /* onRootChain */, options)
+    return this.web3Client.send(txObject, _options)
+  }
+
   /**
    * Start an exit for a token with metadata (token uri) that was minted and burnt on the side chain
    * Wrapper over contract call: [MintableERC721Predicate.startExitForMetadataMintableBurntToken](https://github.com/maticnetwork/contracts/blob/e2cb462b8487921463090b0bdcdd7433db14252b/contracts/root/predicates/MintableERC721Predicate.sol#L66)

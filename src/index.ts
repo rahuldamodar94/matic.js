@@ -370,6 +370,20 @@ export default class Matic extends SDKClient {
     return this.withdrawManager.startExitWithBurntERC20Tokens(txHash, options)
   }
 
+  withdrawRedditToken(txHash: string, options?: SendOptions) {
+    if (!txHash) {
+      throw new Error(`txHash not provided`)
+    }
+    if (options && !options.from) {
+      throw new Error(`options.from is missing`)
+    }
+    return this.withdrawManager.startExitForRedditBurntToken(
+      txHash,
+      '0x317f605aa3EfBC4D2fD0ab9D3490c6F89689f05F',
+      options
+    )
+  }
+
   withdrawNFT(txHash: string, options?: SendOptions) {
     if (!txHash) {
       throw new Error(`txHash not provided`)
