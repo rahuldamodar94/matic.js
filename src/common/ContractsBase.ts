@@ -36,7 +36,7 @@ export default class ContractsBase {
     return new web3.eth.Contract(this.network.abi('ChildERC20'), token)
   }
 
-  public getRedditTokenContract(token: address, parent: boolean = false) {
+  public getMintableERC20TokenContract(token: address, parent: boolean = false) {
     const web3 = parent ? this.web3Client.parentWeb3 : this.web3Client.web3
     return new web3.eth.Contract(
       [
@@ -145,98 +145,6 @@ export default class ContractsBase {
             },
           ],
           name: 'DefaultOperatorRemoved',
-          type: 'event',
-        },
-        {
-          anonymous: false,
-          inputs: [
-            {
-              indexed: true,
-              internalType: 'address',
-              name: 'token',
-              type: 'address',
-            },
-            {
-              indexed: true,
-              internalType: 'address',
-              name: 'from',
-              type: 'address',
-            },
-            {
-              indexed: false,
-              internalType: 'uint256',
-              name: 'amount',
-              type: 'uint256',
-            },
-            {
-              indexed: false,
-              internalType: 'uint256',
-              name: 'input1',
-              type: 'uint256',
-            },
-            {
-              indexed: false,
-              internalType: 'uint256',
-              name: 'output1',
-              type: 'uint256',
-            },
-          ],
-          name: 'Deposit',
-          type: 'event',
-        },
-        {
-          anonymous: false,
-          inputs: [
-            {
-              indexed: true,
-              internalType: 'address',
-              name: 'token',
-              type: 'address',
-            },
-            {
-              indexed: true,
-              internalType: 'address',
-              name: 'from',
-              type: 'address',
-            },
-            {
-              indexed: true,
-              internalType: 'address',
-              name: 'to',
-              type: 'address',
-            },
-            {
-              indexed: false,
-              internalType: 'uint256',
-              name: 'amount',
-              type: 'uint256',
-            },
-            {
-              indexed: false,
-              internalType: 'uint256',
-              name: 'input1',
-              type: 'uint256',
-            },
-            {
-              indexed: false,
-              internalType: 'uint256',
-              name: 'input2',
-              type: 'uint256',
-            },
-            {
-              indexed: false,
-              internalType: 'uint256',
-              name: 'output1',
-              type: 'uint256',
-            },
-            {
-              indexed: false,
-              internalType: 'uint256',
-              name: 'output2',
-              type: 'uint256',
-            },
-          ],
-          name: 'LogTransfer',
           type: 'event',
         },
         {
@@ -383,43 +291,6 @@ export default class ContractsBase {
           type: 'event',
         },
         {
-          anonymous: false,
-          inputs: [
-            {
-              indexed: true,
-              internalType: 'address',
-              name: 'token',
-              type: 'address',
-            },
-            {
-              indexed: true,
-              internalType: 'address',
-              name: 'from',
-              type: 'address',
-            },
-            {
-              indexed: false,
-              internalType: 'uint256',
-              name: 'amount',
-              type: 'uint256',
-            },
-            {
-              indexed: false,
-              internalType: 'uint256',
-              name: 'input1',
-              type: 'uint256',
-            },
-            {
-              indexed: false,
-              internalType: 'uint256',
-              name: 'output1',
-              type: 'uint256',
-            },
-          ],
-          name: 'Withdraw',
-          type: 'event',
-        },
-        {
           constant: false,
           inputs: [
             {
@@ -543,21 +414,6 @@ export default class ContractsBase {
           type: 'function',
         },
         {
-          constant: true,
-          inputs: [],
-          name: 'childChain',
-          outputs: [
-            {
-              internalType: 'address',
-              name: '',
-              type: 'address',
-            },
-          ],
-          payable: false,
-          stateMutability: 'view',
-          type: 'function',
-        },
-        {
           constant: false,
           inputs: [
             {
@@ -599,29 +455,9 @@ export default class ContractsBase {
           type: 'function',
         },
         {
-          constant: false,
-          inputs: [
-            {
-              internalType: 'address',
-              name: 'user',
-              type: 'address',
-            },
-            {
-              internalType: 'uint256',
-              name: 'amount',
-              type: 'uint256',
-            },
-          ],
-          name: 'deposit',
-          outputs: [],
-          payable: false,
-          stateMutability: 'nonpayable',
-          type: 'function',
-        },
-        {
           constant: true,
           inputs: [],
-          name: 'distributionContract',
+          name: 'erc20Predicate',
           outputs: [
             {
               internalType: 'address',
@@ -684,7 +520,7 @@ export default class ContractsBase {
             },
             {
               internalType: 'address',
-              name: 'distributionContract_',
+              name: 'erc20Predicate_',
               type: 'address',
             },
             {
@@ -706,16 +542,6 @@ export default class ContractsBase {
               internalType: 'address[]',
               name: 'defaultOperators_',
               type: 'address[]',
-            },
-            {
-              internalType: 'address',
-              name: '_rootToken',
-              type: 'address',
-            },
-            {
-              internalType: 'address',
-              name: '_childChain',
-              type: 'address',
             },
           ],
           name: 'initializecontract',
@@ -770,11 +596,6 @@ export default class ContractsBase {
           inputs: [
             {
               internalType: 'address',
-              name: 'operator',
-              type: 'address',
-            },
-            {
-              internalType: 'address',
               name: 'account',
               type: 'address',
             },
@@ -782,16 +603,6 @@ export default class ContractsBase {
               internalType: 'uint256',
               name: 'amount',
               type: 'uint256',
-            },
-            {
-              internalType: 'bytes',
-              name: 'userData',
-              type: 'bytes',
-            },
-            {
-              internalType: 'bytes',
-              name: 'operatorData',
-              type: 'bytes',
             },
           ],
           name: 'mint',
@@ -937,21 +748,6 @@ export default class ContractsBase {
         {
           constant: true,
           inputs: [],
-          name: 'rootToken',
-          outputs: [
-            {
-              internalType: 'address',
-              name: '',
-              type: 'address',
-            },
-          ],
-          payable: false,
-          stateMutability: 'view',
-          type: 'function',
-        },
-        {
-          constant: true,
-          inputs: [],
           name: 'subreddit',
           outputs: [
             {
@@ -1071,11 +867,11 @@ export default class ContractsBase {
           inputs: [
             {
               internalType: 'address',
-              name: 'distributionContract_',
+              name: 'erc20Predicate_',
               type: 'address',
             },
           ],
-          name: 'updateDistributionContract',
+          name: 'updateERC20Predicate',
           outputs: [],
           payable: false,
           stateMutability: 'nonpayable',

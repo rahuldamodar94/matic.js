@@ -355,9 +355,9 @@ export default class Matic extends SDKClient {
     return this.withdrawManager.burnERC20Tokens(token, amount, options)
   }
 
-  startWithdrawReddit(token: address, amount: BN | string, options?: SendOptions) {
+  startWithdrawMintalbeERC20(token: address, amount: BN | string, options?: SendOptions) {
     this._validateInputs(token, amount, options)
-    return this.withdrawManager.burnRedditTokens(token, amount, options)
+    return this.withdrawManager.burnMintableERC20Tokens(token, amount, options)
   }
 
   startWithdrawForNFT(token: address, tokenId: BN | string, options?: SendOptions) {
@@ -375,18 +375,14 @@ export default class Matic extends SDKClient {
     return this.withdrawManager.startExitWithBurntERC20Tokens(txHash, options)
   }
 
-  withdrawRedditToken(txHash: string, options?: SendOptions) {
+  withdrawMintableERC20Token(txHash: string, predicate: address, options?: SendOptions) {
     if (!txHash) {
       throw new Error(`txHash not provided`)
     }
     if (options && !options.from) {
       throw new Error(`options.from is missing`)
     }
-    return this.withdrawManager.startExitForRedditBurntToken(
-      txHash,
-      '0x1918EA9E42BEC1eB9077a75dc32c34e9E1aD453b',
-      options
-    )
+    return this.withdrawManager.startExitForMintableERC20BurntToken(txHash, predicate, options)
   }
 
   withdrawNFT(txHash: string, options?: SendOptions) {

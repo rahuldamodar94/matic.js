@@ -71,13 +71,13 @@ export default class WithdrawManager extends ContractsBase {
     return this.web3Client.send(txObject, _options)
   }
 
-  async burnRedditTokens(token: address, amount: BN | string, options?: SendOptions) {
+  async burnMintableERC20Tokens(token: address, amount: BN | string, options?: SendOptions) {
     let txObject
     if (token === ContractsBase.MATIC_CHILD_TOKEN) {
       txObject = this.getChildMaticContract().methods.burn(this.encode(amount), '0x')
       options.value = this.encode(amount)
     } else {
-      txObject = this.getRedditTokenContract(token).methods.burn(this.encode(amount), '0x')
+      txObject = this.getMintableERC20TokenContract(token).methods.burn(this.encode(amount), '0x')
     }
     const _options = await this.web3Client.fillOptions(txObject, false /* onRootChain */, options)
     if (_options.encodeAbi) {
@@ -151,7 +151,7 @@ export default class WithdrawManager extends ContractsBase {
     return this.web3Client.send(txObject, _options)
   }
 
-  async startExitForRedditBurntToken(burnTxHash, predicate: address, options?) {
+  async startExitForMintableERC20BurntToken(burnTxHash, predicate: address, options?) {
     const payload = await this.exitManager.buildPayloadForExit(burnTxHash, WithdrawManager.ERC20_WITHDRAW_EVENT_SIG)
     const _predicate = new this.web3Client.parentWeb3.eth.Contract(
       [
