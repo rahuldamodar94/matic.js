@@ -357,7 +357,7 @@ export default class Matic extends SDKClient {
 
   startWithdrawReddit(token: address, amount: BN | string, options?: SendOptions) {
     this._validateInputs(token, amount, options)
-    return this.withdrawManager.burnERC20Tokens(token, amount, options)
+    return this.withdrawManager.burnRedditTokens(token, amount, options)
   }
 
   startWithdrawForNFT(token: address, tokenId: BN | string, options?: SendOptions) {
