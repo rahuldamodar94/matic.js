@@ -71,6 +71,21 @@ export default class WithdrawManager extends ContractsBase {
     return this.web3Client.send(txObject, _options)
   }
 
+  async burnRedditTokens(token: address, amount: BN | string, options?: SendOptions) {
+    let txObject
+    if (token === ContractsBase.MATIC_CHILD_TOKEN) {
+      txObject = this.getChildMaticContract().methods.burn(this.encode(amount), '0x')
+      options.value = this.encode(amount)
+    } else {
+      txObject = this.getERC20TokenContract(token).methods.burn(this.encode(amount), '0x')
+    }
+    const _options = await this.web3Client.fillOptions(txObject, false /* onRootChain */, options)
+    if (_options.encodeAbi) {
+      return Object.assign(_options, { data: txObject.encodeABI(), to: token })
+    }
+    return this.web3Client.send(txObject, _options)
+  }
+
   async burnERC721Token(token: address, tokenId: BN | string, options?: SendOptions) {
     const txObject = this.getERC721TokenContract(token).methods.withdraw(this.encode(tokenId))
     const _options = await this.web3Client.fillOptions(txObject, false /* onRootChain */, options)
