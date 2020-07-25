@@ -384,7 +384,7 @@ export default class Matic extends SDKClient {
     }
     return this.withdrawManager.startExitForRedditBurntToken(
       txHash,
-      '0x317f605aa3EfBC4D2fD0ab9D3490c6F89689f05F',
+      '0xF44C0a62194d159590f381bD8e02B39ACCCc5C62',
       options
     )
   }
