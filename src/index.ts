@@ -355,7 +355,7 @@ export default class Matic extends SDKClient {
     return this.withdrawManager.burnERC20Tokens(token, amount, options)
   }
 
-  startWithdrawMintalbeERC20(token: address, amount: BN | string, options?: SendOptions) {
+  startWithdrawMintableERC20(token: address, amount: BN | string, options?: SendOptions) {
     this._validateInputs(token, amount, options)
     return this.withdrawManager.burnMintableERC20Tokens(token, amount, options)
   }
