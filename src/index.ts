@@ -385,6 +385,16 @@ export default class Matic extends SDKClient {
     return this.withdrawManager.startExitForMintableERC20BurntToken(txHash, predicate, options)
   }
 
+  massExit(referenceTxHash: string, inFlightTxHash: string, predicate: address, options?: SendOptions) {
+    if (!referenceTxHash || !inFlightTxHash) {
+      throw new Error(`txHash not provided`)
+    }
+    if (options && !options.from) {
+      throw new Error(`options.from is missing`)
+    }
+    return this.withdrawManager.startExitForOutgoingErc20Transfer(referenceTxHash, inFlightTxHash, predicate, options)
+  }
+
   withdrawNFT(txHash: string, options?: SendOptions) {
     if (!txHash) {
       throw new Error(`txHash not provided`)

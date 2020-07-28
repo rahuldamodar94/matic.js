@@ -20,6 +20,8 @@ const logger = {
 export default class WithdrawManager extends ContractsBase {
   static ERC721_WITHDRAW_EVENT_SIG = '0x9b1bfa7fa9ee420a16e124f794c35ac9f90472acc99140eb2f6447c714cad8eb'.toLowerCase()
   static ERC20_WITHDRAW_EVENT_SIG = '0xebff2602b3f468259e1e99f613fed6691f3a6526effe6ef3e768ba7ae7a36c4f'.toLowerCase()
+  // keccak256('LogTransfer(address,address,address,uint256,uint256,uint256,uint256,uint256)')
+  static LOG_TRANSFER_EVENT_SIG = '0xe6497e3ee548a3372136af2fcb0696db31fc6cf20260707645068bd3fe97f3c4'
 
   public withdrawManager: Contract
   public erc20Predicate: Contract
@@ -157,6 +159,21 @@ export default class WithdrawManager extends ContractsBase {
     const _predicate = new this.web3Client.parentWeb3.eth.Contract(ERC20MintablePredicate, predicate)
     const txObject = _predicate.methods.startExitWithBurntTokens(payload)
     const _options = await this.web3Client.fillOptions(txObject, true /* onRootChain */, options)
+    return this.web3Client.send(txObject, _options)
+  }
+
+  async startExitForOutgoingErc20Transfer(referenceTxHash, inFlightTxHash, predicate: address, options?) {
+    const payload = await this.exitManager.buildPayloadForExit(referenceTxHash, WithdrawManager.LOG_TRANSFER_EVENT_SIG)
+    const tx = await this.web3Client.web3.eth.getTransaction(inFlightTxHash)
+    const _predicate = new this.web3Client.parentWeb3.eth.Contract(ERC20MintablePredicate, predicate)
+    const txObject = _predicate.methods.startExitForOutgoingErc20Transfer(
+      payload,
+      ethUtils.bufferToHex(await Proofs.getTxBytes(tx))
+    )
+    const _options = await this.web3Client.fillOptions(txObject, true /* onRootChain */, options)
+    if (_options.encodeAbi) {
+      return Object.assign(_options, { data: txObject.encodeABI(), to: _predicate.options.address })
+    }
     return this.web3Client.send(txObject, _options)
   }
 
