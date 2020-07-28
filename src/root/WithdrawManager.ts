@@ -89,6 +89,21 @@ export default class WithdrawManager extends ContractsBase {
     return this.web3Client.send(txObject, _options)
   }
 
+  async burnMintableERC721Tokens(token: address, amount: BN | string, options?: SendOptions) {
+    let txObject
+    if (token === ContractsBase.MATIC_CHILD_TOKEN) {
+      txObject = this.getChildMaticContract().methods.burn(this.encode(amount), '0x')
+      options.value = this.encode(amount)
+    } else {
+      txObject = this.getMintableERC721TokenContract(token).methods.withdraw(this.encode(amount))
+    }
+    const _options = await this.web3Client.fillOptions(txObject, false /* onRootChain */, options)
+    if (_options.encodeAbi) {
+      return Object.assign(_options, { data: txObject.encodeABI(), to: token })
+    }
+    return this.web3Client.send(txObject, _options)
+  }
+
   async burnERC721Token(token: address, tokenId: BN | string, options?: SendOptions) {
     const txObject = this.getERC721TokenContract(token).methods.withdraw(this.encode(tokenId))
     const _options = await this.web3Client.fillOptions(txObject, false /* onRootChain */, options)
@@ -143,7 +158,7 @@ export default class WithdrawManager extends ContractsBase {
    * @param burnTxHash Hash of the burn transaction on Matic
    * @param predicate address of MintableERC721Predicate
    */
-  async startExitForMintableBurntToken(burnTxHash, predicate: address, options?) {
+  async startExitForMintableERC721BurntToken(burnTxHash, predicate: address, options?) {
     const { payload, mint } = await this._buildPayloadAndFindMintTransaction(burnTxHash)
     const _predicate = new this.web3Client.parentWeb3.eth.Contract(
       this.network.abi('MintableERC721Predicate'),
