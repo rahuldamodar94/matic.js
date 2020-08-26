@@ -380,6 +380,16 @@ export default class Matic extends SDKClient {
     return this.withdrawManager.startExitWithBurntERC20Tokens(txHash, options)
   }
 
+  withdrawWithPayload(payload: string, options?: SendOptions) {
+    if (!payload) {
+      throw new Error(`payload not provided`)
+    }
+    if (options && !options.from) {
+      throw new Error(`options.from is missing`)
+    }
+    return this.withdrawManager.startExitWithBurntERC20TokensWithPayload(payload, options)
+  }
+
   withdrawMintableERC20Token(txHash: string, predicate: address, options?: SendOptions) {
     if (!txHash) {
       throw new Error(`txHash not provided`)
@@ -418,6 +428,16 @@ export default class Matic extends SDKClient {
       throw new Error(`options.from is missing`)
     }
     return this.withdrawManager.startExitWithBurntERC721Tokens(txHash, options)
+  }
+
+  withdrawNFTWithPayload(payload: string, options?: SendOptions) {
+    if (!payload) {
+      throw new Error(`payload not provided`)
+    }
+    if (options && !options.from) {
+      throw new Error(`options.from is missing`)
+    }
+    return this.withdrawManager.startExitWithBurntERC721TokensWithPayload(payload, options)
   }
 
   processExits(tokenAddress: string | string[], options?: SendOptions) {
