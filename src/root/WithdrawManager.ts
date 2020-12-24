@@ -1,16 +1,13 @@
-import ethUtils from 'ethereumjs-util'
-import Contract from 'web3/eth/contract'
-
 import BN from 'bn.js'
-import Proofs from '../libs/ProofsUtil'
-
-import { address, MaticClientInitializationOptions, SendOptions } from '../types/Common'
-import Web3Client from '../common/Web3Client'
+import ethUtils from 'ethereumjs-util'
+import { Contract } from 'web3-eth-contract'
 import ContractsBase from '../common/ContractsBase'
-import RootChain from './RootChain'
-import Registry from './Registry'
 import ExitManager from '../common/ExitManager'
-import ERC20MintablePredicate from '../helper/ERC20MintablePredicate.json'
+import Web3Client from '../common/Web3Client'
+import Proofs from '../libs/ProofsUtil'
+import { address, MaticClientInitializationOptions, SendOptions } from '../types/Common'
+import Registry from './Registry'
+import RootChain from './RootChain'
 
 const logger = {
   info: require('debug')('maticjs:WithdrawManager'),
@@ -67,50 +64,20 @@ export default class WithdrawManager extends ContractsBase {
     } else {
       txObject = this.getERC20TokenContract(token).methods.withdraw(this.encode(amount))
     }
-    const _options = await this.web3Client.fillOptions(txObject, false /* onRootChain */, options)
-    if (_options.encodeAbi) {
-      return Object.assign(_options, { data: txObject.encodeABI(), to: token })
+    const web3Options = await this.web3Client.fillOptions(txObject, false /* onRootChain */, options)
+    if (web3Options.encodeAbi) {
+      return Object.assign(web3Options, { data: txObject.encodeABI(), to: token })
     }
-    return this.web3Client.send(txObject, _options)
-  }
-
-  async burnMintableERC20Tokens(token: address, amount: BN | string, options?: SendOptions) {
-    let txObject
-    if (token === ContractsBase.MATIC_CHILD_TOKEN) {
-      txObject = this.getChildMaticContract().methods.burn(this.encode(amount), '0x')
-      options.value = this.encode(amount)
-    } else {
-      txObject = this.getMintableERC20TokenContract(token).methods.burn(this.encode(amount), '0x')
-    }
-    const _options = await this.web3Client.fillOptions(txObject, false /* onRootChain */, options)
-    if (_options.encodeAbi) {
-      return Object.assign(_options, { data: txObject.encodeABI(), to: token })
-    }
-    return this.web3Client.send(txObject, _options)
-  }
-
-  async burnMintableERC721Tokens(token: address, amount: BN | string, options?: SendOptions) {
-    let txObject
-    if (token === ContractsBase.MATIC_CHILD_TOKEN) {
-      txObject = this.getChildMaticContract().methods.burn(this.encode(amount), '0x')
-      options.value = this.encode(amount)
-    } else {
-      txObject = this.getMintableERC721TokenContract(token).methods.withdraw(this.encode(amount))
-    }
-    const _options = await this.web3Client.fillOptions(txObject, false /* onRootChain */, options)
-    if (_options.encodeAbi) {
-      return Object.assign(_options, { data: txObject.encodeABI(), to: token })
-    }
-    return this.web3Client.send(txObject, _options)
+    return this.web3Client.send(txObject, web3Options, options)
   }
 
   async burnERC721Token(token: address, tokenId: BN | string, options?: SendOptions) {
     const txObject = this.getERC721TokenContract(token).methods.withdraw(this.encode(tokenId))
-    const _options = await this.web3Client.fillOptions(txObject, false /* onRootChain */, options)
-    if (_options.encodeAbi) {
-      return Object.assign(_options, { data: txObject.encodeABI(), to: token })
+    const web3Options = await this.web3Client.fillOptions(txObject, false /* onRootChain */, options)
+    if (web3Options.encodeAbi) {
+      return Object.assign(web3Options, { data: txObject.encodeABI(), to: token })
     }
-    return this.web3Client.send(txObject, _options)
+    return this.web3Client.send(txObject, web3Options, options)
   }
 
   async processExits(tokens: address | address[], options?: SendOptions) {
@@ -125,11 +92,11 @@ export default class WithdrawManager extends ContractsBase {
       logger.info('processExits can be gas expensive, sending in 2000000 gas but even this might not be enough') // eslint-disable-line
       options.gas = 2000000
     }
-    const _options = await this.web3Client.fillOptions(txObject, true /* onRootChain */, options)
-    if (_options.encodeAbi) {
-      return Object.assign(_options, { data: txObject.encodeABI(), to: this.withdrawManager.options.address })
+    const web3Options = await this.web3Client.fillOptions(txObject, true /* onRootChain */, options)
+    if (web3Options.encodeAbi) {
+      return Object.assign(web3Options, { data: txObject.encodeABI(), to: this.withdrawManager.options.address })
     }
-    return this.web3Client.send(txObject, _options)
+    return this.web3Client.send(txObject, web3Options, options)
   }
 
   async buildPayload(burnTxHash, type) {
@@ -150,11 +117,24 @@ export default class WithdrawManager extends ContractsBase {
   async startExitWithBurntERC20Tokens(burnTxHash, options?) {
     const payload = await this.exitManager.buildPayloadForExit(burnTxHash, WithdrawManager.ERC20_WITHDRAW_EVENT_SIG)
     const txObject = this.erc20Predicate.methods.startExitWithBurntTokens(payload)
-    const _options = await this.web3Client.fillOptions(txObject, true /* onRootChain */, options)
-    if (_options.encodeAbi) {
-      return Object.assign(_options, { data: txObject.encodeABI(), to: this.erc20Predicate.options.address })
+    const web3Options = await this.web3Client.fillOptions(txObject, true /* onRootChain */, options)
+    if (web3Options.encodeAbi) {
+      return Object.assign(web3Options, { data: txObject.encodeABI(), to: this.erc20Predicate.options.address })
     }
-    return this.web3Client.send(txObject, _options)
+    return this.web3Client.send(txObject, web3Options, options)
+  }
+
+  async startExitWithBurntERC20TokensHermoine(burnTxHash, options?) {
+    const payload = await this.exitManager.buildPayloadForExitHermoine(
+      burnTxHash,
+      WithdrawManager.ERC20_WITHDRAW_EVENT_SIG
+    )
+    const txObject = this.erc20Predicate.methods.startExitWithBurntTokens(payload)
+    const web3Options = await this.web3Client.fillOptions(txObject, true /* onRootChain */, options)
+    if (web3Options.encodeAbi) {
+      return Object.assign(web3Options, { data: txObject.encodeABI(), to: this.erc20Predicate.options.address })
+    }
+    return this.web3Client.send(txObject, web3Options, options)
   }
 
   async startExitWithBurntERC20TokensWithPayload(payload, options?) {
@@ -169,11 +149,36 @@ export default class WithdrawManager extends ContractsBase {
   async startExitWithBurntERC721Tokens(burnTxHash, options?) {
     const payload = await this.exitManager.buildPayloadForExit(burnTxHash, WithdrawManager.ERC721_WITHDRAW_EVENT_SIG)
     const txObject = this.erc721Predicate.methods.startExitWithBurntTokens(payload)
-    const _options = await this.web3Client.fillOptions(txObject, true /* onRootChain */, options)
-    if (_options.encodeAbi) {
-      return Object.assign(_options, { data: txObject.encodeABI(), to: this.erc721Predicate.options.address })
+    const web3Options = await this.web3Client.fillOptions(txObject, true /* onRootChain */, options)
+    if (web3Options.encodeAbi) {
+      return Object.assign(web3Options, { data: txObject.encodeABI(), to: this.erc721Predicate.options.address })
     }
-    return this.web3Client.send(txObject, _options)
+    return this.web3Client.send(txObject, web3Options, options)
+  }
+
+  async startExitWithBurntERC721TokensHermoine(burnTxHash, options?) {
+    const payload = await this.exitManager.buildPayloadForExitHermoine(
+      burnTxHash,
+      WithdrawManager.ERC721_WITHDRAW_EVENT_SIG
+    )
+    const txObject = this.erc721Predicate.methods.startExitWithBurntTokens(payload)
+    const web3Options = await this.web3Client.fillOptions(txObject, true /* onRootChain */, options)
+    if (web3Options.encodeAbi) {
+      return Object.assign(web3Options, { data: txObject.encodeABI(), to: this.erc721Predicate.options.address })
+    }
+    return this.web3Client.send(txObject, web3Options, options)
+  }
+
+  async getExitTime(burnTxHash, confirmTxHash) {
+    const HALF_EXIT_PERIOD = parseInt(await this.web3Client.call(this.withdrawManager.methods.HALF_EXIT_PERIOD()))
+    let blockNumber = (await this.web3Client.getParentWeb3().eth.getTransaction(confirmTxHash)).blockNumber
+    let confirmTime = (await this.web3Client.getParentWeb3().eth.getBlock(blockNumber)).timestamp
+    let checkPointTime = (await this.rootChain.getCheckpointInclusion(burnTxHash)).createdAt
+    let exitTime = Math.max(parseInt(checkPointTime) + 2 * HALF_EXIT_PERIOD, +confirmTime + HALF_EXIT_PERIOD)
+    return {
+      exitTime,
+      exitable: Date.now() / 1000 > exitTime,
+    }
   }
 
   async startExitWithBurntERC721TokensWithPayload(payload, options?) {
@@ -198,31 +203,8 @@ export default class WithdrawManager extends ContractsBase {
       predicate
     )
     const txObject = _predicate.methods.startExitForMintableBurntToken(payload, mint)
-    const _options = await this.web3Client.fillOptions(txObject, true /* onRootChain */, options)
-    return this.web3Client.send(txObject, _options)
-  }
-
-  async startExitForMintableERC20BurntToken(burnTxHash, predicate: address, options?) {
-    const payload = await this.exitManager.buildPayloadForExit(burnTxHash, WithdrawManager.ERC20_WITHDRAW_EVENT_SIG)
-    const _predicate = new this.web3Client.parentWeb3.eth.Contract(ERC20MintablePredicate, predicate)
-    const txObject = _predicate.methods.startExitWithBurntTokens(payload)
-    const _options = await this.web3Client.fillOptions(txObject, true /* onRootChain */, options)
-    return this.web3Client.send(txObject, _options)
-  }
-
-  async startExitForOutgoingErc20Transfer(referenceTxHash, inFlightTxHash, predicate: address, options?) {
-    const payload = await this.exitManager.buildPayloadForExit(referenceTxHash, WithdrawManager.LOG_TRANSFER_EVENT_SIG)
-    const tx = await this.web3Client.web3.eth.getTransaction(inFlightTxHash)
-    const _predicate = new this.web3Client.parentWeb3.eth.Contract(ERC20MintablePredicate, predicate)
-    const txObject = _predicate.methods.startExitForOutgoingErc20Transfer(
-      payload,
-      ethUtils.bufferToHex(await Proofs.getTxBytes(tx))
-    )
-    const _options = await this.web3Client.fillOptions(txObject, true /* onRootChain */, options)
-    if (_options.encodeAbi) {
-      return Object.assign(_options, { data: txObject.encodeABI(), to: _predicate.options.address })
-    }
-    return this.web3Client.send(txObject, _options)
+    const web3Options = await this.web3Client.fillOptions(txObject, true /* onRootChain */, options)
+    return this.web3Client.send(txObject, web3Options, options)
   }
 
   /**
@@ -238,8 +220,8 @@ export default class WithdrawManager extends ContractsBase {
       predicate
     )
     const txObject = _predicate.methods.startExitForMetadataMintableBurntToken(payload, mint)
-    const _options = await this.web3Client.fillOptions(txObject, true /* onRootChain */, options)
-    return this.web3Client.send(txObject, _options)
+    const web3Options = await this.web3Client.fillOptions(txObject, true /* onRootChain */, options)
+    return this.web3Client.send(txObject, web3Options, options)
   }
 
   private async _buildPayloadAndFindMintTransaction(burnTxHash) {

@@ -1,6 +1,7 @@
+import fetch from 'node-fetch'
+
 const BN = require('bn.js')
 const bluebird = require('bluebird')
-
 const Trie = require('merkle-patricia-tree')
 const EthereumTx = require('ethereumjs-tx')
 const ethUtils = require('ethereumjs-util')
@@ -13,6 +14,7 @@ const logger = {
   debug: require('debug')('maticjs:debug:Web3Client'),
 }
 
+// TODO: remove proofs util and use plasma-core library
 export default class ProofsUtil {
   static getBlockHeader(block) {
     const n = new BN(block.number).toArrayLike(Buffer, 'be', 32)
@@ -35,6 +37,24 @@ export default class ProofsUtil {
     return ethUtils.bufferToHex(Buffer.concat(proof))
   }
 
+  static async buildBlockProofHermoine(web3, start, end, blockNumber, networkApiUrl) {
+    logger.debug('buildBlockProof...', start, end, blockNumber)
+    const tree = await ProofsUtil.buildBlockHeaderMerkleHermoine(start, end, networkApiUrl)
+    const proof = tree.getProof(ProofsUtil.getBlockHeader(await web3.eth.getBlock(blockNumber)))
+    return ethUtils.bufferToHex(Buffer.concat(proof))
+  }
+
+  static async buildBlockHeaderMerkleHermoine(start, end, networkApiUrl) {
+    let response = await fetch(networkApiUrl + '/generate-proof?start=' + start + '&end=' + end)
+    let logDetails = await response.json()
+    let logs = logDetails.merkle_headerblocks
+    const headers = new Array(end - start + 1)
+    for (let i = 0; i < end - start + 1; i++) {
+      headers[i] = ProofsUtil.getBlockHeader(logs[i])
+    }
+    return new MerkleTree(headers)
+  }
+
   static async buildBlockHeaderMerkle(web3, start, end) {
     const headers = new Array(end - start + 1)
     await bluebird.map(
@@ -51,8 +71,14 @@ export default class ProofsUtil {
 
   static async getTxProof(tx, block) {
     const txTrie = new Trie()
+    const stateSyncTxHash = ethUtils.bufferToHex(ProofsUtil.getStateSyncTxHash(block))
+
     for (let i = 0; i < block.transactions.length; i++) {
       const siblingTx = block.transactions[i]
+      if (siblingTx.hash === stateSyncTxHash) {
+        // ignore if tx hash is bor state-sync tx
+        continue
+      }
       const path = rlp.encode(siblingTx.transactionIndex)
       const rawSignedSiblingTx = ProofsUtil.getTxBytes(siblingTx)
       await new Promise((resolve, reject) => {
@@ -111,10 +137,15 @@ export default class ProofsUtil {
   }
 
   static async getReceiptProof(receipt, block, web3, receipts?) {
+    const stateSyncTxHash = ethUtils.bufferToHex(ProofsUtil.getStateSyncTxHash(block))
     const receiptsTrie = new Trie()
     const receiptPromises = []
     if (!receipts) {
       block.transactions.forEach(tx => {
+        if (tx.hash === stateSyncTxHash) {
+          // ignore if tx hash is bor state-sync tx
+          return
+        }
         receiptPromises.push(web3.eth.getTransactionReceipt(tx.hash))
       })
       receipts = await Promise.all(receiptPromises)
@@ -161,7 +192,7 @@ export default class ProofsUtil {
   static getReceiptBytes(receipt) {
     return rlp.encode([
       ethUtils.toBuffer(
-        receipt.status !== undefined && receipt.status != null ? (receipt.status ? 1 : 0) : receipt.root
+        receipt.status !== undefined && receipt.status != null ? (receipt.status ? '0x1' : '0x') : receipt.root
       ),
       ethUtils.toBuffer(receipt.cumulativeGasUsed),
       ethUtils.toBuffer(receipt.logsBloom),
@@ -176,5 +207,22 @@ export default class ProofsUtil {
         ]
       }),
     ])
+  }
+
+  // getStateSyncTxHash returns block's tx hash for state-sync receipt
+  // Bor blockchain includes extra receipt/tx for state-sync logs,
+  // but it is not included in transactionRoot or receiptRoot.
+  // So, while calculating proof, we have to exclude them.
+  //
+  // This is derived from block's hash and number
+  // state-sync tx hash = keccak256("matic-bor-receipt-" + block.number + block.hash)
+  static getStateSyncTxHash(block): Buffer {
+    return ethUtils.keccak256(
+      Buffer.concat([
+        ethUtils.toBuffer('matic-bor-receipt-'), // prefix for bor receipt
+        ethUtils.setLengthLeft(ethUtils.toBuffer(block.number), 8), // 8 bytes of block number (BigEndian)
+        ethUtils.toBuffer(block.hash), // block hash
+      ])
+    )
   }
 }

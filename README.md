@@ -1,12 +1,16 @@
 # Matic SDK
 
-[![Build Status](https://travis-ci.org/maticnetwork/matic.js.svg?branch=master)](https://travis-ci.org/maticnetwork/matic.js)
+![Build Status](https://github.com/maticnetwork/matic.js/workflows/CI/badge.svg?branch=master)
 
 This repository contains the `maticjs` client library. `maticjs` makes it easy for developers, who may not be deeply familiar with smart contract development, to interact with the various components of Matic Network.
 
 This library will help developers to move assets from Ethereum chain to Matic chain, and withdraw from Matic to Ethereum using fraud proofs.
 
 We will be improving this library to make all features available like Plasma Faster Exit, challenge exit, finalize exit and more.
+
+### Support
+
+Our [Discord](https://discord.gg/s2NPJNUvyc) is the best way to reach us ✨.
 
 ### Installation
 
@@ -20,13 +24,23 @@ $ npm install --save @maticnetwork/maticjs
 
 #### CDN
 
----
+There are two options available for CDN:
 
-```bash
-<script src="https://cdn.jsdelivr.net/npm/@maticnetwork/maticjs@2.0.1/dist/matic.js"></script>
+1. jsdeliver
+
+[https://cdn.jsdelivr.net/npm/@maticnetwork/maticjs@latest/dist/matic.js](https://cdn.jsdelivr.net/npm/@maticnetwork/maticjs@latest/dist/matic.js)
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@maticnetwork/maticjs@latest/dist/matic.js"></script>
 ```
 
-Matic is also available on [unpkg](https://unpkg.com/@maticnetwork/maticjs@2.0.1/dist/matic.js)
+2. unpkg
+
+[https://unpkg.com/@maticnetwork/maticjs@latest/dist/matic.js](https://unpkg.com/@maticnetwork/maticjs@latest/dist/matic.js)
+
+```html
+<script src="https://unpkg.com/@maticnetwork/maticjs@latest/dist/matic.js"></script>
+```
 
 ---
 
@@ -1049,9 +1063,46 @@ maticPOSClient.exitERC20('0xabcd...789', {
 
 ---
 
-### Support
+### Development
 
-Please write to info@matic.network for integration support. If you have any queries, feedback or feature requests, feel free to reach out to us on telegram: [t.me/maticnetwork](https://t.me/maticnetwork)
+**Setup**
+
+```bash
+npm install
+```
+
+**Lint**
+
+```bash
+# To check lint errors
+npm run lint
+
+# To fix most common lint errors
+# Note that it might not fix all errors, some need manual intervention
+npm run lint:fix
+```
+
+**Transpile typescript files**
+
+```bash
+npm run build
+```
+
+**Generate distribution files**
+
+```bash
+npm run build:webpack
+```
+
+**NPM publish**
+
+Before running publish script, make sure you have updated version properly.
+
+Note that `prepublishOnly` script will be automatically called while publishing. It will check lint, clean dist/lib folders and build fresh distribution files before it executes `npm publish`.
+
+```bash
+npm publish
+```
 
 ### License
 
